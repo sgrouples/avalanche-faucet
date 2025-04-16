@@ -37,5 +37,6 @@
                 "WINDOW_SIZE": 1440
             }
         }
-    ]
+    ],
+    "erc20tokens": []
 }
