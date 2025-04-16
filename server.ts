@@ -3,7 +3,7 @@ import cors from 'cors'
 import path from 'path'
 import dotenv from 'dotenv'
 
-import { RateLimiter, VerifyCaptcha, parseBody, parseURI } from './middlewares'
+import { RateLimiter, parseBody, parseURI } from './middlewares'
 import EVM from './vms/evm'
 
 import {
@@ -67,8 +67,6 @@ new RateLimiter(app, [
 const couponService = new CouponService(couponConfig)
 const mainnetCheckService = new MainnetCheckService(MAINNET_BALANCE_CHECK_RPC)
 
-const captcha: VerifyCaptcha = new VerifyCaptcha(app, process.env.CAPTCHA_SECRET!, process.env.V2_CAPTCHA_SECRET!)
-
 let evms = new Map<string, EVMInstanceAndConfig>()
 
 // Get the complete config object from the array of config objects (chains) with ID as id
@@ -105,20 +103,9 @@ evmchains.forEach((chain: ChainType): void => {
     })
 })
 
-// Adding ERC20 token contracts to their HOST evm instances
-erc20tokens.forEach((token: any, i: number): void => {
-    if(token.HOSTID) {
-        token = populateConfig(token, getChainByID(evmchains, token.HOSTID))
-    }
-
-    erc20tokens[i] = token
-    const evm: EVMInstanceAndConfig = evms.get(getChainByID(evmchains, token.HOSTID)?.ID!)!
-
-    evm?.instance.addERC20Contract(token)
-})
 
 // POST request for sending tokens or coins
-router.post('/sendToken', captcha.middleware, async (req: any, res: any) => {
+router.post('/sendToken',  async (req: any, res: any) => {
     const address: string = req.body?.address
     const chain: string = req.body?.chain
     const erc20: string | undefined = req.body?.erc20
